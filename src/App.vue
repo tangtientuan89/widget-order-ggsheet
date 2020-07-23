@@ -58,7 +58,6 @@ export default {
   mounted() {},
   async created() {
     try {
-      this.infiniteHandler();
       let body = {
         access_token: this.access_token,
         secret_key: this.secret_key
@@ -67,7 +66,7 @@ export default {
         `${APIBase}/v1/service/partner-authenticate`,
         body
       );
-      // console.log("get_customer_info", get_customer_info.data.data.payload);
+      console.log("get_customer_info", get_customer_info.data.data.payload);
       if (get_customer_info.data.succes && get_customer_info.data.code == 200) {
         this.isOAuth = true;
       }
@@ -100,24 +99,6 @@ export default {
         console.log(e);
       }
     },
-    swalToast(title) {
-      const Toast = Swal.mixin({
-        toast: true,
-        position: "top-end",
-        showConfirmButton: false,
-        timer: 1000,
-        timerProgressBar: false,
-        onOpen: toast => {
-          toast.addEventListener("mouseenter", Swal.stopTimer);
-          toast.addEventListener("mouseleave", Swal.resumeTimer);
-        }
-      });
-      Toast.fire({
-        icon: "success",
-        title: title,
-        padding: "5px"
-      });
-    }
   }
 };
 </script>
