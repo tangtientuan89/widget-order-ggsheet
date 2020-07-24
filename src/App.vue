@@ -12,7 +12,7 @@
       >Kích hoạt</button>
     </div>
     <div v-if="isOAuth" style="height:100%">
-      <p class="text-center pt-2 m-0" style="font-size:1rem; font-weight:600">Tạo đơn</p>
+      <p class="text-center pt-2 m-0" style="font-size:1rem; font-weight:600">Tạo Đơn Hàng</p>
       <Form />
     </div>
   </div>
