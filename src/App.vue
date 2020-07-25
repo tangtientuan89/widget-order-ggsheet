@@ -66,16 +66,16 @@ export default {
         `${APIBase}/v1/service/partner-authenticate`,
         body
       );
-      console.log("get_customer_info", get_customer_info.data.data.payload);
+      console.log("get_customer_info", get_customer_info.data.data.public_profile);
       if (get_customer_info.data.succes && get_customer_info.data.code == 200) {
         this.isOAuth = true;
       }
-      this.fb_page_id = get_customer_info.data.data.payload.fb_page_id;
-      this.fb_client_id = get_customer_info.data.data.payload.fb_client_id;
+      this.fb_page_id = get_customer_info.data.data.public_profile.fb_page_id;
+      this.fb_client_id = get_customer_info.data.data.public_profile.fb_client_id;
       this.current_staff_id =
-        get_customer_info.data.data.payload.current_staff_id;
+        get_customer_info.data.data.public_profile.current_staff_id;
       this.current_staff_name =
-        get_customer_info.data.data.payload.current_staff_name;
+        get_customer_info.data.data.public_profile.current_staff_name;
     } catch (e) {
       console.log(e);
     }
