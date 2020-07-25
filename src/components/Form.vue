@@ -95,7 +95,7 @@ export default {
         Swal.showLoading();
         let res = await fetch.post(API, { url_sheet: url_sheet });
         // console.log("res data form", res.data.data.body);
-        console.log("res", res);
+        // console.log("res", res);
         Swal.hideLoading();
         let html = res.data.data.body;
         let entry = this.detectHTML(html); // detect entry from response
@@ -190,7 +190,6 @@ export default {
       $(".name").focus();
     },
     validate_order() {
-      console.log("1111111111", $(".name").html().trim());
       if ($(".name").html().trim() == "") {
         return this.swalToast("Bạn chưa nhập Họ Tên", "warning");
       }
@@ -203,11 +202,6 @@ export default {
       if ($(".product").html().trim() == "") {
         return this.swalToast("Bạn chưa nhập Tổng Giá Đơn", "warning");
       }
-      console.log("check num", /^\d*$/.test($(".total_price").html().trim()));
-      console.log(
-        "format num",
-        this.format_number($(".total_price").html().trim())
-      );
       if ($(".total_price").html().trim() == "") {
         return this.swalToast("Bạn chưa nhập Tổng giá đơn", "warning");
       }
