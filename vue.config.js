@@ -6,6 +6,6 @@ module.exports = {
         hotOnly: false,
     },
     publicPath: process.env.NODE_ENV === 'production'
-    ? '/widget-xbusiness/'
+    ? '/order-google-form/'
     : '/'
 }

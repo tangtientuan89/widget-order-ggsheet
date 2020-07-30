@@ -21,10 +21,10 @@
 <script>
 import fetch from "@/services/resful.js";
 import Form from "@/components/Form";
-// const API = "https://chatbox-app.botbanhang.vn/v1/app/note";
-const API = "https://app.devchatbox.tk/v1/app/note";
-// const APIBase = "https://chatbox-app.botbanhang.vn";
-const APIBase = "https://app.devchatbox.tk";
+const API = "https://chatbox-app.botbanhang.vn/v1/app/note";
+// const API = "https://app.devchatbox.tk/v1/app/note";
+const APIBase = "https://chatbox-app.botbanhang.vn";
+// const APIBase = "https://app.devchatbox.tk";
 let url_string = location.href;
 let url = new URL(url_string);
 let access_token = url.searchParams.get("access_token");

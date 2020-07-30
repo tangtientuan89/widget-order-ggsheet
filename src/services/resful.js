@@ -7,12 +7,12 @@ export default {
                 .post(
                     path,
                     body,
-                    {
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: token
-                        }
-                    }
+                    // {
+                    //     headers: {
+                    //         'Content-Type': 'application/json',
+                    //         Authorization: token
+                    //     }
+                    // }
                 )
                 .then(response => {
                     resolve(response)
@@ -23,16 +23,16 @@ export default {
         })
 
     },
-    get: (path,token) => {
+    get: (path, token) => {
         return new Promise((resolve, reject) => {
             axios.get(path,
                 {
                     headers: {
-                        "Content-Type": "application/json",
+                        'Content-Type': 'application/json',
                         Authorization: token
                     }
                 }
-                )
+            )
                 .then(response => {
                     resolve(response)
                 })

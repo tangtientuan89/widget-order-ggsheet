@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="!hide_url_sheet">
+    <div v-if="!hide_url_ggform">
       <label for="url-sheet" class="pt-3 pb-1">URL GGSheet</label>
       <div
         id="url-sheet"
@@ -12,10 +12,10 @@
     <div class="pb-2 text-right">
       <button
         class="btn btn-primary mx-1"
-        v-if="!hide_url_sheet&&!hide_btn_cancel"
+        v-if="!hide_url_ggform&&!hide_btn_cancel"
         @click="btn_cancel"
       >Huỷ Bỏ</button>
-      <button class="btn btn-primary" v-if="!hide_url_sheet" @click="btn_check">Xác nhận</button>
+      <button class="btn btn-primary" v-if="!hide_url_ggform" @click="btn_check">Xác nhận</button>
       <div v-else class="exchange-url d-flex justify-content-end align-items-center text-primary">
         <i id="icon-exchange" class="fas fa-exchange-alt" style="font-size:1rem"></i>
         <label for="icon-exchange" class="px-1" @click="btn_changeURL">Thay đổi URL</label>
@@ -23,14 +23,14 @@
     </div>
     <div v-if="!hide_form_order" class>
       <label for="name">Họ Tên</label>
-      <div class="input name" contenteditable="plaintext-only" data-text="FullName"></div>
+      <div class="input name" contenteditable="plaintext-only" data-text="Full Name"></div>
       <label for="phone">Số Điện Thoại</label>
       <div class="input phone" contenteditable="plaintext-only" data-text="Phone"></div>
       <label for="address">Địa Chỉ</label>
       <div class="input address" contenteditable="plaintext-only" data-text="Address"></div>
-      <label for="product">Sản Phẩm</label>
-      <div class="input product" contenteditable="plaintext-only" data-text="Products"></div>
-      <label>Tổng Giá Đơn</label>
+      <label for="product">Sản Phẩm Trong Đơn</label>
+      <div class="input product" contenteditable="plaintext-only" data-text="Products In Order"></div>
+      <label>Tổng Giá Đơn Hàng</label>
       <div class="input total_price" contenteditable="plaintext-only" data-text="Total Price"></div>
       <label for="note">Ghi Chú</label>
       <div class="input note" contenteditable="plaintext-only" data-text="Note"></div>
@@ -46,73 +46,69 @@
 <script>
 // import Demo from "@/components/Demo";
 import fetch from "@/services/resful.js";
-const API = "http://localhost:3000/test";
+const API =
+  "https://chatbox-widget.botbanhang.vn/v1/widget-order-ggform/GGForm/get-html";
 export default {
   // components: {
   //   Demo: Demo,
   // },
   data() {
     return {
-      url_sheet: "",
+      url_ggform: "",
       entry: [],
       hide_btn_cancel: true,
-      hide_url_sheet: false,
+      hide_url_ggform: false,
       hide_form_order: true,
       handle_api: true,
     };
   },
   mounted() {
-    // this.url_sheet = localStorage.storage_widget_order_ggsheet_url;
-    // this.entry = localStorage.storage_widget_order_ggsheet_entry;
-    this.url_sheet = JSON.parse(
-      localStorage.getItem("widget_order_ggsheet_url")
+    let data_localStorage = JSON.parse(
+      localStorage.getItem("widget_order_ggsheet")
     );
-    this.entry = JSON.parse(localStorage.getItem("widget_order_ggsheet_entry"));
-    console.log("this.entry localStorage", this.entry);
-    if (this.url_sheet && this.entry.length) {
+    console.log("widget_order_ggsheet", data_localStorage);
+    this.url_ggform = data_localStorage.url_ggform;
+    this.entry = data_localStorage.entry;
+    if (this.url_ggform && this.entry.length) {
       this.hide_form_order = false;
-      this.hide_url_sheet = true;
+      this.hide_url_ggform = true;
     }
   },
   methods: {
     btn_changeURL() {
       this.hide_btn_cancel = false;
-      this.hide_url_sheet = false;
+      this.hide_url_ggform = false;
       this.hide_form_order = true;
     },
     btn_cancel() {
       this.hide_btn_cancel = true;
       this.hide_form_order = false;
-      this.hide_url_sheet = true;
+      this.hide_url_ggform = true;
     },
 
     async btn_check() {
       try {
-        let url_sheet = this.check_url($("#url-sheet").html());
-        if (!url_sheet) return;
+        let url_ggform = this.check_url($("#url-sheet").html());
+        if (!url_ggform) return;
         if (!this.handle_api) return;
         this.handle_api = false;
         Swal.showLoading();
-        let res = await fetch.post(API, { url_sheet: url_sheet });
+        let res = await fetch.post(API, { url_ggform: url_ggform }); //API get HTML formGGSheet
         // console.log("res data form", res.data.data.body);
-        // console.log("res", res);
         Swal.hideLoading();
         let html = res.data.data.body;
         let entry = this.detectHTML(html); // detect entry from response
         if (!entry.length) return this.swalToast("URL sai", "error");
         localStorage.setItem(
-          "widget_order_ggsheet_url",
-          JSON.stringify(url_sheet)
+          "widget_order_ggsheet",
+          JSON.stringify({
+            url_ggform: url_ggform,
+            entry: entry,
+          })
         );
-        localStorage.setItem(
-          "widget_order_ggsheet_entry",
-          JSON.stringify(entry)
-        );
-        // localStorage.storage_widget_order_ggsheet_url = url_sheet;
-        // localStorage.storage_widget_order_ggsheet_entry = entry;
         $("#url-sheet").html("");
-        this.url_sheet = url_sheet;
-        this.hide_url_sheet = true;
+        this.url_ggform = url_ggform;
+        this.hide_url_ggform = true;
         this.hide_form_order = false;
         this.handle_api = true;
         this.swalToast("Thành công", "success");
@@ -145,10 +141,11 @@ export default {
         this.swalToast("URL sai", "error");
         return false;
       }
-      let arr = url.split("/");
+      let arr_string = url.split("/");
       let id_ggsheet = "";
-      for (let i = 0; i < arr.length; i++) {
-        if (arr[i].length > id_ggsheet.length) id_ggsheet = arr[i];
+      for (let i = 0; i < arr_string.length; i++) {
+        if (arr_string[i].length > id_ggsheet.length)
+          id_ggsheet = arr_string[i];
       }
       console.log("id_ggsheet", id_ggsheet);
       return `https://docs.google.com/forms/d/e/${id_ggsheet}/formResponse`;
@@ -166,10 +163,10 @@ export default {
       body[`entry.${this.entry[5]}`] = $(".note").html();
       console.log("body", body);
       // let add_data_sheet = await fetch.post(API, body);
-      console.log("url", this.url_sheet);
+      console.log("url", this.url_ggform);
       $.ajax({
         method: "POST",
-        url: this.url_sheet,
+        url: this.url_ggform,
         data: body,
         success: (r) => {
           console.log("r", r);
@@ -200,7 +197,7 @@ export default {
         return this.swalToast("Bạn chưa nhập Địa Chỉ", "warning");
       }
       if ($(".product").html().trim() == "") {
-        return this.swalToast("Bạn chưa nhập Tổng Giá Đơn", "warning");
+        return this.swalToast("Bạn chưa nhập Sản phẩm", "warning");
       }
       if ($(".total_price").html().trim() == "") {
         return this.swalToast("Bạn chưa nhập Tổng giá đơn", "warning");
