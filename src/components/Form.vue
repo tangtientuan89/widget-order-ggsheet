@@ -1,68 +1,119 @@
 <template>
   <div>
-    <div v-if="!hide_url_ggform">
-      <label for="url-sheet" class="pt-3 pb-1">URL GGSheet</label>
-      <div
-        id="url-sheet"
-        class="input url-sheet"
-        contenteditable="plaintext-only"
-        data-text="Nhập URL GG-Sheet"
-      ></div>
-    </div>
-    <div class="pb-2 text-right">
-      <button
-        class="btn btn-primary mx-1"
-        v-if="!hide_url_ggform&&!hide_btn_cancel"
-        @click="btn_cancel"
-      >Huỷ Bỏ</button>
-      <button class="btn btn-primary" v-if="!hide_url_ggform" @click="btn_check">Xác nhận</button>
-      <div v-else class="exchange-url d-flex justify-content-end align-items-center text-primary">
-        <i id="icon-exchange" class="fas fa-exchange-alt" style="font-size:1rem"></i>
-        <label for="icon-exchange" class="px-1" @click="btn_changeURL">Thay đổi URL</label>
+    <div>
+      <p class="mb-0 mt-3 font-weight-bold">Thông tin đơn hàng</p>
+      <div class="form-row">
+        <div class="col">
+          <input class="form-control" placeholder="Họ Tên" v-model="info.name" />
+        </div>
+        <div class="col">
+          <input class="form-control" placeholder="Số ĐT" v-model="info.phone" />
+        </div>
       </div>
-    </div>
-    <div v-if="!hide_form_order" class>
-      <label for="name">Họ Tên</label>
-      <div class="input name" contenteditable="plaintext-only" data-text="Full Name"></div>
-      <label for="phone">Số Điện Thoại</label>
-      <div class="input phone" contenteditable="plaintext-only" data-text="Phone"></div>
-      <label for="address">Địa Chỉ</label>
-      <div class="input address" contenteditable="plaintext-only" data-text="Address"></div>
-      <label for="product">Sản Phẩm Trong Đơn</label>
-      <div class="input product" contenteditable="plaintext-only" data-text="Products In Order"></div>
-      <label>Tổng Giá Đơn Hàng</label>
-      <div class="input total_price" contenteditable="plaintext-only" data-text="Total Price"></div>
-      <label for="note">Ghi Chú</label>
-      <div class="input note" contenteditable="plaintext-only" data-text="Note"></div>
-      <!-- <Demo /> -->
+      <input class="form-control" placeholder="Địa chỉ chi tiết" v-model="address" />
+      <div class="form-row">
+        <div class="col">
+          <select v-model="country" class="form-control">
+            <option selected value>Quốc Gia</option>
+            <option>Việt Nam</option>
+          </select>
+        </div>
+        <div class="col">
+          <select v-model="city" @change="getDistrict()" class="form-control">
+            <option selected value>Tỉnh/Tp</option>
+            <option v-for="(city, index) in list_city" :value="city" :key="index">{{city.name}}</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="col">
+          <select v-model="district" @change="getWard()" class="form-control">
+            <option selected value>Quận/Huyện</option>
+            <option
+              v-for="(district, index) in list_district"
+              :value="district"
+              :key="index"
+            >{{district.name}}</option>
+          </select>
+        </div>
+        <div class="col">
+          <select v-model="ward" class="form-control">
+            <option selected value>Phường/Xã</option>
+            <option v-for="(ward, index) in list_ward" :value="ward" :key="index">{{ward.name}}</option>
+          </select>
+        </div>
+      </div>
+      <p class="mb-0 mt-2">Sản Phẩm</p>
+      <textarea class="form-control" placeholder="Sản Phẩm" v-model="info.product"></textarea>
+      <p class="mb-0 mt-2">Giá Trị Đơn Hàng</p>
+      <input
+        class="form-control text-right"
+        type="number"
+        placeholder="Giá Trị Đơn Hàng"
+        v-model="info.total_price"
+      />
+      <div class="option my-3 d-flex justify-content-end">
+        <div class="d-flex align-items-center" @click="handleShowNote">
+          <img class="mr-2" src="../assets/note.png" alt="add note" />
+          <p class="text-primary m-0">Thêm ghi chú</p>
+        </div>
+      </div>
+      <div v-if="is_show_note">
+        <textarea
+          class="input input-large note form-control"
+          placeholder="Ghi Chú"
+          v-model="info.note"
+        ></textarea>
+      </div>
       <div class="text-right mb-2">
-        <button class="btn btn-primary mx-1" @click="refresh_input">Làm mới</button>
-        <button class="btn btn-primary" @click="btn_Save">Lưu lại</button>
+        <button class="btn btn-primary w-100 my-2" @click="handleShowOrderInfo()">Tạo đơn hàng</button>
       </div>
+      <OrderInfo
+        :is_show_order_info="is_show_order_info"
+        :handleCloseOrderInfo="handleCloseOrderInfo"
+        :createOrder="createOrder"
+        :info="info"
+      />
     </div>
   </div>
 </template>
 
 <script>
-// import Demo from "@/components/Demo";
+
 import fetch from "@/services/resful.js";
-const API =
-  "https://chatbox-widget.botbanhang.vn/v1/widget-order-ggform/GGForm/get-html";
+import OrderInfo from "./OrderInfo";
+
 export default {
-  // components: {
-  //   Demo: Demo,
-  // },
+  components: {
+    OrderInfo,
+  },
+  props: ["name", "phone"],
   data() {
     return {
       url_ggform: "",
       entry: [],
-      hide_btn_cancel: true,
-      hide_url_ggform: false,
-      hide_form_order: true,
-      handle_api: true,
+      info: {
+        name: this.name,
+        phone: this.phone,
+        address: "",
+        product: "",
+        total_price: 0,
+        note: "",
+      },
+      country: "",
+      list_city: "",
+      city: "",
+      list_district: "",
+      district: "",
+      list_ward: "",
+      ward: "",
+      address: "",
+      is_show_note: false,
+      is_show_order_info: false,
     };
   },
   mounted() {
+    this.getCity();
     let data_localStorage = JSON.parse(
       localStorage.getItem("widget_order_ggsheet")
     );
@@ -74,6 +125,7 @@ export default {
       this.hide_url_ggform = true;
     }
   },
+
   methods: {
     btn_changeURL() {
       this.hide_btn_cancel = false;
@@ -85,82 +137,15 @@ export default {
       this.hide_form_order = false;
       this.hide_url_ggform = true;
     },
-
-    async btn_check() {
-      try {
-        let url_ggform = this.check_url($("#url-sheet").html());
-        if (!url_ggform) return;
-        if (!this.handle_api) return;
-        this.handle_api = false;
-        Swal.showLoading();
-        let res = await fetch.post(API, { url_ggform: url_ggform }); //API get HTML formGGSheet
-        // console.log("res data form", res.data.data.body);
-        Swal.hideLoading();
-        let html = res.data.data.body;
-        let entry = this.detectHTML(html); // detect entry from response
-        if (!entry.length) return this.swalToast("URL sai", "error");
-        localStorage.setItem(
-          "widget_order_ggsheet",
-          JSON.stringify({
-            url_ggform: url_ggform,
-            entry: entry,
-          })
-        );
-        $("#url-sheet").html("");
-        this.url_ggform = url_ggform;
-        this.hide_url_ggform = true;
-        this.hide_form_order = false;
-        this.handle_api = true;
-        this.swalToast("Thành công", "success");
-      } catch (e) {
-        this.handle_api = true;
-        this.swalToast("URL lỗi", "error");
-        Swal.hideLoading();
-        console.log("e", e);
-      }
-    },
-    detectHTML(html) {
-      let arr = html.split("data-params=");
-      console.log("split arr", arr);
-      arr.shift();
-      console.log("split arr", arr);
-      let entry = [];
-      for (let i = 0; i < arr.length; i++) {
-        let e = arr[i].split(",[[")[1].split(",")[0];
-        entry.push(e);
-      }
-      console.log("text arr", entry);
-      this.entry = entry;
-      return entry;
-    },
-
-    check_url(url) {
-      let search_in_url = url.search("docs.google.com");
-      console.log("search_in_url", search_in_url);
-      if (search_in_url == -1) {
-        this.swalToast("URL sai", "error");
-        return false;
-      }
-      let arr_string = url.split("/");
-      let id_ggsheet = "";
-      for (let i = 0; i < arr_string.length; i++) {
-        if (arr_string[i].length > id_ggsheet.length)
-          id_ggsheet = arr_string[i];
-      }
-      console.log("id_ggsheet", id_ggsheet);
-      return `https://docs.google.com/forms/d/e/${id_ggsheet}/formResponse`;
-    },
-
-    async btn_Save() {
+    async createOrder() {
       console.log(" this.entry", this.entry);
-      if (!this.validate_order()) return;
       let body = {};
-      body[`entry.${this.entry[0]}`] = $(".name").html();
-      body[`entry.${this.entry[1]}`] = $(".phone").html();
-      body[`entry.${this.entry[2]}`] = $(".address").html();
-      body[`entry.${this.entry[3]}`] = $(".product").html();
-      body[`entry.${this.entry[4]}`] = $(".total_price").html();
-      body[`entry.${this.entry[5]}`] = $(".note").html();
+      body[`entry.${this.entry[0]}`] = this.info.name;
+      body[`entry.${this.entry[1]}`] = this.info.phone;
+      body[`entry.${this.entry[2]}`] = this.info.address;
+      body[`entry.${this.entry[3]}`] = this.info.product;
+      body[`entry.${this.entry[4]}`] = this.info.total_price;
+      body[`entry.${this.entry[5]}`] = this.info.note;
       console.log("body", body);
       // let add_data_sheet = await fetch.post(API, body);
       console.log("url", this.url_ggform);
@@ -173,37 +158,76 @@ export default {
         },
         error: (e) => {
           console.log(e);
+          this.handleCloseOrderInfo();
           this.swalToast("Tạo đơn thành công", "success");
         },
       });
     },
-    refresh_input() {
-      $(".name").html("");
-      $(".phone").html("");
-      $(".address").html("");
-      $(".product").html("");
-      $(".total_price").html("");
-      $(".note").html("");
-      $(".name").focus();
+    async getCity() {
+      try {
+        let get_list_city = await fetch.get(
+          "https://ext.botup.io/v1/delivery/subvn/thongtin/tinhtp"
+        );
+        this.list_city = get_list_city.data.data;
+        console.log(" this.list_city", this.list_city);
+      } catch (e) {
+        console.log(e);
+      }
+    },
+    async getDistrict() {
+      try {
+        console.log("handle here", this.city);
+        let path = "https://ext.botup.io/v1/delivery/subvn/thongtin/quanhuyen";
+        let params = {
+          matinh: this.city.code,
+        };
+        let get_list_district = await fetch.get(path, params);
+        this.list_district = get_list_district.data.data;
+        console.log("  this.list_district", this.list_district);
+      } catch (error) {
+        console.log("error", error);
+      }
+    },
+    async getWard() {
+      try {
+        let path =
+          "https://ext.botup.io/v1/delivery/subvn/thongtin/xaphuonghuyen";
+        let params = {
+          mahuyen: this.district.code,
+        };
+        let get_list_ward = await fetch.get(path, params);
+        this.list_ward = get_list_ward.data.data;
+        console.log(" this.list_ward", this.list_ward);
+      } catch (error) {
+        console.log("error", error);
+      }
+    },
+    handleShowNote() {
+      this.is_show_note = !this.is_show_note;
+    },
+    handleShowOrderInfo() {
+      if (!this.validate_order()) return;
+      this.info.address = `${this.address}, ${this.ward.full_name}`;
+      this.is_show_order_info = true;
+    },
+    handleCloseOrderInfo() {
+      this.is_show_order_info = false;
     },
     validate_order() {
-      if ($(".name").html().trim() == "") {
+      if (!this.info.name) {
         return this.swalToast("Bạn chưa nhập Họ Tên", "warning");
       }
-      if ($(".phone").html().trim() == "") {
+      if (!this.info.phone) {
         return this.swalToast("Bạn chưa nhập Số ĐT", "warning");
       }
-      if ($(".address").html().trim() == "") {
-        return this.swalToast("Bạn chưa nhập Địa Chỉ", "warning");
+      if (!this.address || !this.city || !this.district || !this.ward) {
+        return this.swalToast("Bạn chưa nhập đầy đủ Địa Chỉ", "warning");
       }
-      if ($(".product").html().trim() == "") {
+      if (!this.info.product) {
         return this.swalToast("Bạn chưa nhập Sản phẩm", "warning");
       }
-      if ($(".total_price").html().trim() == "") {
+      if (!this.info.total_price) {
         return this.swalToast("Bạn chưa nhập Tổng giá đơn", "warning");
-      }
-      if (!/^\d*$/.test($(".total_price").html().trim())) {
-        return this.swalToast("Tổng Giá Đơn phải là số", "warning");
       }
       return true;
     },
@@ -236,25 +260,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+
 $fontSize: 13px;
-@mixin divNote {
-  -moz-appearance: textfield;
-  -webkit-appearance: textfield;
-  font: -moz-field;
-  font: -webkit-small-control;
-  word-wrap: break-word;
-  outline: none;
-}
-@mixin divEditTable {
-  @include divNote;
-  width: 100%;
-  padding: 5px;
-  overflow-y: scroll;
-  background-color: -moz-field;
-  line-height: 16px;
-  border-radius: 6px;
-  font-size: $fontSize;
-}
 * {
   font-size: $fontSize;
   line-height: 16px;
@@ -264,49 +271,20 @@ $fontSize: 13px;
     background-color: rgb(225, 225, 225);
   }
 }
-.input {
-  max-height: 80px;
-  color: #495057;
-  border: 1px solid rgba(114, 114, 114, 0.5);
-  border-color: rgba(114, 114, 114, 0.3);
-  border-radius: 5px;
-  margin-bottom: 0.5rem;
-  // background-color: rgb(225, 225, 225);
-  @include divEditTable;
-  &:focus {
-    color: #495057;
-    background-color: #fff;
-    border-color: #80bdff;
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-  }
-}
-[contentEditable="plaintext-only"]:empty:not(:focus):before {
-  content: attr(data-text);
-  color: rgba(5, 5, 5, 0.5);
-  pointer-events: none;
-  display: block;
-  margin-left: 5px;
-}
-.exchange-url {
-  padding-top: 0.8rem;
-  &:hover {
-    cursor: pointer;
-  }
-  label {
-    margin: 0;
-    &:hover {
-      cursor: pointer;
-    }
-  }
-}
-label {
-  margin-bottom: 0.3rem;
-  margin-left: 0.2rem;
+input,
+select {
+  margin-bottom: 10px;
 }
 button {
   width: 4rem;
   padding-left: 0;
   padding-right: 0;
+}
+.option {
+  cursor: pointer;
+  img {
+    width: 20px;
+    height: 20px;
+  }
 }
 </style>

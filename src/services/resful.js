@@ -23,9 +23,12 @@ export default {
         })
 
     },
-    get: (path, token) => {
+    get: (path, params, token) => {
+        params = {
+            params: params
+        }
         return new Promise((resolve, reject) => {
-            axios.get(path,
+            axios.get(path, params,
                 {
                     headers: {
                         'Content-Type': 'application/json',
