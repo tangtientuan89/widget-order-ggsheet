@@ -17,7 +17,7 @@
     </div>
     <!-- form -->
     <div v-if="is_oauth" style="height:100%">
-      <p class="text-center pt-2 m-0" style="font-size:1rem; font-weight:600">ORDER GOOGLE SHEET</p>
+      <p class="text-center pt-2 mb-4" style="font-size:1rem; font-weight:600">ORDER GOOGLE SHEET</p>
       <Form :name="name" :phone="phone" />
     </div>
   </div>
@@ -103,7 +103,7 @@ export default {
           access_token: this.access_token,
           token_partner: "active",
         };
-        let Oauth = await fetch.post(
+        let oauth = await fetch.post(
           `${APIBase}/v1/app/app-installed/update`,
           body
         );

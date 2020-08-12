@@ -1,7 +1,7 @@
 <template>
   <div>
     <div>
-      <p class="mb-0 mt-3 font-weight-bold">Thông tin đơn hàng</p>
+      <!-- <p class="mb-0 mt-3">Thông tin khách hàng</p> -->
       <div class="form-row">
         <div class="col">
           <input class="form-control" placeholder="Họ Tên" v-model="info.name" />
@@ -43,14 +43,18 @@
           </select>
         </div>
       </div>
-      <p class="mb-0 mt-2">Sản Phẩm</p>
-      <textarea class="form-control" placeholder="Sản Phẩm" v-model="info.product"></textarea>
+      <!-- <p class="mb-0 mt-2">Thông tin sản phẩm</p> -->
+      <textarea class="form-control" placeholder="Sản Phẩm" v-model="info.product" title="Sản Phẩm"></textarea>
       <p class="mb-0 mt-2">Giá Trị Đơn Hàng</p>
       <input
+        id="input"
         class="form-control text-right"
-        type="number"
+        type="text"
         placeholder="Giá Trị Đơn Hàng"
+        title="Giá Trị Đơn Hàng"
         v-model="info.total_price"
+        data-type="currency"
+        @keyup="checkKeyBoard($event,$event.target.value)"
       />
       <div class="option my-3 d-flex justify-content-end">
         <div class="d-flex align-items-center" @click="handleShowNote">
@@ -79,7 +83,6 @@
 </template>
 
 <script>
-
 import fetch from "@/services/resful.js";
 import OrderInfo from "./OrderInfo";
 
@@ -100,6 +103,7 @@ export default {
         total_price: 0,
         note: "",
       },
+      number: "",
       country: "",
       list_city: "",
       city: "",
@@ -127,16 +131,6 @@ export default {
   },
 
   methods: {
-    btn_changeURL() {
-      this.hide_btn_cancel = false;
-      this.hide_url_ggform = false;
-      this.hide_form_order = true;
-    },
-    btn_cancel() {
-      this.hide_btn_cancel = true;
-      this.hide_form_order = false;
-      this.hide_url_ggform = true;
-    },
     async createOrder() {
       console.log(" this.entry", this.entry);
       let body = {};
@@ -206,14 +200,14 @@ export default {
       this.is_show_note = !this.is_show_note;
     },
     handleShowOrderInfo() {
-      if (!this.validate_order()) return;
+      if (!this.validateOrder()) return;
       this.info.address = `${this.address}, ${this.ward.full_name}`;
       this.is_show_order_info = true;
     },
     handleCloseOrderInfo() {
       this.is_show_order_info = false;
     },
-    validate_order() {
+    validateOrder() {
       if (!this.info.name) {
         return this.swalToast("Bạn chưa nhập Họ Tên", "warning");
       }
@@ -231,11 +225,47 @@ export default {
       }
       return true;
     },
-    format_number(number) {
-      return new Intl.NumberFormat("de-DE", {
+    //handle input (giá trị đơn hàng) show number money
+    async checkKeyBoard(event, string) {
+      if (
+        event.keyCode == 37 ||
+        event.keyCode == 39 ||
+        event.keyCode == 8 ||
+        event.keyCode == 46
+      )
+        return;
+      let caret_pos = event.target.selectionStart;
+      let input = document.getElementById("input");
+      let number_length = await this.formatNumber(string);
+      //handle caret_pos when number length = 3*x+1
+      if (number_length == Math.floor(number_length / 3) * 3 + 1) {
+        caret_pos = caret_pos + 1;
+      }
+      //focus in position
+      if (input != null) {
+        if (input.createTextRange) {
+          let range = input.createTextRange();
+          range.move("character", caret_pos);
+          range.select();
+        } else {
+          if (input.selectionStart) {
+            input.focus();
+            input.setSelectionRange(caret_pos, caret_pos);
+          } else input.focus();
+        }
+      }
+
+      if (event.keyCode == 8) {
+      }
+    },
+    async formatNumber(string) {
+      let number = string.replace(/\D/g, "");
+      this.info.total_price = new Intl.NumberFormat("de-DE", {
         style: "currency",
         currency: "VND",
       }).format(number);
+      console.log("number", number);
+      return number.length;
     },
     swalToast(title, icon) {
       const Toast = Swal.mixin({
@@ -256,11 +286,21 @@ export default {
       });
     },
   },
+  filters: {
+    toCurrency(value) {
+      // console.log('type num',typeof value);
+      let formatter = new Intl.NumberFormat("de-DE", {
+        style: "currency",
+        minimumFractionDigits: 0,
+        currency: "VND",
+      });
+      return formatter.format(value);
+    },
+  },
 };
 </script>
 
 <style lang="scss" scoped>
-
 $fontSize: 13px;
 * {
   font-size: $fontSize;
