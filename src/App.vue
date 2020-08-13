@@ -68,6 +68,8 @@ export default {
       localStorage.getItem("widget_order_ggsheet")
     );
     console.log("widget_order_ggsheet", data_localStorage);
+    if(!data_localStorage.url_ggform)
+    return this.show_form_oauth =true
     this.url_ggform = data_localStorage.url_ggform;
   },
   async created() {
@@ -207,10 +209,10 @@ export default {
 
 <style lang="scss" scoped>
 $colorBG: #f6f6f6;
-*::-webkit-scrollbar {
-  width: 0px;
-  background-color: #0199ff;
-}
+// *::-webkit-scrollbar {
+//   width: 0px;
+//   background-color: #0199ff;
+// }
 
 .activate {
   background: $colorBG;

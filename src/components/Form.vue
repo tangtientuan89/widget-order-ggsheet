@@ -14,33 +14,77 @@
       <div class="form-row">
         <div class="col">
           <select v-model="country" class="form-control">
-            <option selected value>Quốc Gia</option>
-            <option>Việt Nam</option>
+            <option selected value>Việt Nam</option>
+            <!-- <option >Quốc Gia</option> -->
           </select>
         </div>
-        <div class="col">
-          <select v-model="city" @change="getDistrict()" class="form-control">
-            <option selected value>Tỉnh/Tp</option>
-            <option v-for="(city, index) in list_city" :value="city" :key="index">{{city.name}}</option>
-          </select>
+        <!-- <div class="col">
+          <input
+            class="form-control"
+            type="text"
+            list="city"
+            placeholder="Tỉnh/Tp"
+            v-model="city"
+            @change="getDistrict()"
+          />
+          <datalist id="city">
+            <option v-for="(city, index) in list_city" :key="index">{{city.name}}</option>
+          </datalist>
         </div>
       </div>
       <div class="form-row">
         <div class="col">
-          <select v-model="district" @change="getWard()" class="form-control">
-            <option selected value>Quận/Huyện</option>
-            <option
-              v-for="(district, index) in list_district"
-              :value="district"
-              :key="index"
-            >{{district.name}}</option>
-          </select>
+          <input
+            class="form-control"
+            type="text"
+            list="district"
+            placeholder="Quận/Huyện"
+            v-model="district"
+            @change="getWard()"
+          />
+          <datalist id="district">
+            <option v-for="(district, index) in list_district" :key="index">{{district.name}}</option>
+          </datalist>
         </div>
         <div class="col">
-          <select v-model="ward" class="form-control">
-            <option selected value>Phường/Xã</option>
-            <option v-for="(ward, index) in list_ward" :value="ward" :key="index">{{ward.name}}</option>
-          </select>
+          <input
+            class="form-control"
+            type="text"
+            list="ward"
+            placeholder="Phường/Xã"
+            v-model="ward"
+          />
+          <datalist id="ward">
+            <option v-for="(ward, index) in list_ward" :key="index">{{ward.name}}</option>
+          </datalist>
+        </div>-->
+        <div class="col">
+          <autocomplete
+            :items="list_city"
+            :placeholder="'Tỉnh/Tp'"
+            @input_data="city=$event"
+            :getData="getDistrict"
+          />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="col">
+          <autocomplete
+            ref="district"
+            :items="list_district"
+            :placeholder="'Quận/Huyện'"
+            @input_data="district=$event"
+            :getData="getWard"
+          />
+        </div>
+        <div class="col">
+          <autocomplete
+            ref="ward"
+            :items="list_ward"
+            :placeholder="'Phường/Xã'"
+            @input_data="ward=$event"
+            :getData="1"
+          />
         </div>
       </div>
       <!-- <p class="mb-0 mt-2">Thông tin sản phẩm</p> -->
@@ -85,10 +129,11 @@
 <script>
 import fetch from "@/services/resful.js";
 import OrderInfo from "./OrderInfo";
-
+import autocomplete from "./autocomplete.vue";
 export default {
   components: {
     OrderInfo,
+    autocomplete,
   },
   props: ["name", "phone"],
   data() {
@@ -170,10 +215,17 @@ export default {
     },
     async getDistrict() {
       try {
-        console.log("handle here", this.city);
+        console.log("handle getDistrict", this.city);
+
+        let city = "";
+        for (let index = 0; index < this.list_city.length; index++) {
+          if (this.city == this.list_city[index].name)
+            city = this.list_city[index];
+        }
+
         let path = "https://ext.botup.io/v1/delivery/subvn/thongtin/quanhuyen";
         let params = {
-          matinh: this.city.code,
+          matinh: city.code,
         };
         let get_list_district = await fetch.get(path, params);
         this.list_district = get_list_district.data.data;
@@ -184,10 +236,18 @@ export default {
     },
     async getWard() {
       try {
+        console.log("handle getWard", this.district);
+
+        let district = "";
+        for (let index = 0; index < this.list_district.length; index++) {
+          if (this.district == this.list_district[index].name)
+            district = this.list_district[index];
+        }
+
         let path =
           "https://ext.botup.io/v1/delivery/subvn/thongtin/xaphuonghuyen";
         let params = {
-          mahuyen: this.district.code,
+          mahuyen: district.code,
         };
         let get_list_ward = await fetch.get(path, params);
         this.list_ward = get_list_ward.data.data;
@@ -196,12 +256,21 @@ export default {
         console.log("error", error);
       }
     },
+    // handleClearInputDistrict() {
+    //   console.log("run clear distric", this.$refs.district);
+    //   this.$refs.district.value = "";
+    //   this.district = "";
+    //   console.log("run clear distric", this.district);
+    // },
+    // handleClearInputWard() {
+    //   this.ward = "";
+    // },
     handleShowNote() {
       this.is_show_note = !this.is_show_note;
     },
     handleShowOrderInfo() {
       if (!this.validateOrder()) return;
-      this.info.address = `${this.address}, ${this.ward.full_name}`;
+      this.info.address = `${this.address}, ${this.ward}, ${this.district}, ${this.city}`;
       this.is_show_order_info = true;
     },
     handleCloseOrderInfo() {
@@ -286,6 +355,7 @@ export default {
       });
     },
   },
+
   filters: {
     toCurrency(value) {
       // console.log('type num',typeof value);
@@ -306,10 +376,13 @@ $fontSize: 13px;
   font-size: $fontSize;
   line-height: 16px;
   box-sizing: border-box;
-  ::-webkit-scrollbar {
-    width: 0px;
-    background-color: rgb(225, 225, 225);
-  }
+  // ::-webkit-scrollbar {
+  //   width: 0px;
+  //   background-color: rgb(225, 225, 225);
+  // }
+}
+textarea {
+  margin-top: 10px;
 }
 input,
 select {
@@ -326,5 +399,8 @@ button {
     width: 20px;
     height: 20px;
   }
+}
+datalist {
+  display: none;
 }
 </style>
