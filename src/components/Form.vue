@@ -107,6 +107,7 @@ export default {
         address: "",
         product: "",
         total_price: 0,
+        total_price_num: 0,
         note: "",
       },
       number: "",
@@ -144,7 +145,7 @@ export default {
       body[`entry.${this.entry[1]}`] = this.info.phone;
       body[`entry.${this.entry[2]}`] = this.info.address;
       body[`entry.${this.entry[3]}`] = this.info.product;
-      body[`entry.${this.entry[4]}`] = this.info.total_price;
+      body[`entry.${this.entry[4]}`] = this.info.total_price_num;
       body[`entry.${this.entry[5]}`] = this.info.note;
       console.log("body", body);
       // let add_data_sheet = await fetch.post(API, body);
@@ -290,6 +291,7 @@ export default {
     },
     async formatNumber(string) {
       let number = string.replace(/\D/g, "");
+      this.info.total_price_num = number;
       this.info.total_price = new Intl.NumberFormat("de-DE", {
         style: "currency",
         currency: "VND",
