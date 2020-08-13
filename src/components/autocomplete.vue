@@ -19,9 +19,8 @@
         v-else
         v-for="(result, i) in results"
         :key="i"
-        @click="setResult(result);onChange();if(getData != 1){getData()
-      }"
-        class="autocomplete-result"
+        @click="setResult(result);onChange();if(getData != 1){getData()}"
+        class="autocomplete-result px-2"
         :class="{ 'is-active': i === arrowCounter }"
       >{{ result.name }}</li>
     </ul>
@@ -80,7 +79,11 @@ export default {
       }
     },
     onEnter() {
-      this.search = this.results[this.arrowCounter];
+      this.search = this.results[this.arrowCounter].name;
+      this.onChange();
+      if (this.getData != 1) {
+        this.getData();
+      }
       this.isOpen = false;
       this.arrowCounter = -1;
     },
@@ -127,13 +130,13 @@ export default {
   bottom: 10px;
   left: 90%;
   width: 10px;
-  z-index: 3;
+  z-index: 2;
 }
 
 .autocomplete-results {
   background: white;
   position: absolute;
-  z-index: 2;
+  z-index: 3;
   padding: 0;
   margin: 0;
   border: 1px solid #eeeeee;

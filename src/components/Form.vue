@@ -18,46 +18,6 @@
             <!-- <option >Quốc Gia</option> -->
           </select>
         </div>
-        <!-- <div class="col">
-          <input
-            class="form-control"
-            type="text"
-            list="city"
-            placeholder="Tỉnh/Tp"
-            v-model="city"
-            @change="getDistrict()"
-          />
-          <datalist id="city">
-            <option v-for="(city, index) in list_city" :key="index">{{city.name}}</option>
-          </datalist>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="col">
-          <input
-            class="form-control"
-            type="text"
-            list="district"
-            placeholder="Quận/Huyện"
-            v-model="district"
-            @change="getWard()"
-          />
-          <datalist id="district">
-            <option v-for="(district, index) in list_district" :key="index">{{district.name}}</option>
-          </datalist>
-        </div>
-        <div class="col">
-          <input
-            class="form-control"
-            type="text"
-            list="ward"
-            placeholder="Phường/Xã"
-            v-model="ward"
-          />
-          <datalist id="ward">
-            <option v-for="(ward, index) in list_ward" :key="index">{{ward.name}}</option>
-          </datalist>
-        </div>-->
         <div class="col">
           <autocomplete
             :items="list_city"
@@ -130,6 +90,7 @@
 import fetch from "@/services/resful.js";
 import OrderInfo from "./OrderInfo";
 import autocomplete from "./autocomplete.vue";
+
 export default {
   components: {
     OrderInfo,

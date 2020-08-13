@@ -28,8 +28,8 @@ import fetch from "@/services/resful.js";
 import Form from "@/components/Form";
 
 // const domain = "https://chatbox-app.botbanhang.vn/order-google-form";
-// const APIBase = "https://chatbox-app.botbanhang.vn";
-const APIBase = "https://app.devchatbox.tk";
+const APIBase = "https://chatbox-app.botbanhang.vn";
+// const APIBase = "https://app.devchatbox.tk";
 
 const API =
   "https://chatbox-widget.botbanhang.vn/v1/widget-order-ggform/GGForm/get-html";
@@ -46,8 +46,8 @@ export default {
       is_oauth: false,
       show_form_oauth: false,
       access_token: access_token,
-      // secret_key: "98996b4986ad441bafcddafbc3968ed7", //product
-      secret_key: "7bd46085a2874c7d9f1920f26f3dcec1",
+      secret_key: "98996b4986ad441bafcddafbc3968ed7", //product
+      // secret_key: "7bd46085a2874c7d9f1920f26f3dcec1",
       content: "",
       allNote: [],
       payload: "",
