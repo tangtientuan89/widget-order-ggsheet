@@ -19,7 +19,7 @@
           </select>
         </div>
         <div class="col">
-          <autocomplete
+          <Autocomplete
             :items="list_city"
             :placeholder="'Tỉnh/Tp'"
             @input_data="city=$event"
@@ -29,7 +29,7 @@
       </div>
       <div class="form-row">
         <div class="col">
-          <autocomplete
+          <Autocomplete
             ref="district"
             :items="list_district"
             :placeholder="'Quận/Huyện'"
@@ -38,7 +38,7 @@
           />
         </div>
         <div class="col">
-          <autocomplete
+          <Autocomplete
             ref="ward"
             :items="list_ward"
             :placeholder="'Phường/Xã'"
@@ -89,21 +89,21 @@
 <script>
 import fetch from "@/services/resful.js";
 import OrderInfo from "./OrderInfo";
-import autocomplete from "./autocomplete.vue";
+import Autocomplete from "./Autocomplete.vue";
 
 export default {
   components: {
     OrderInfo,
-    autocomplete,
+    Autocomplete,
   },
-  props: ["name", "phone"],
+  props: ["payload"],
   data() {
     return {
       url_ggform: "",
       entry: [],
       info: {
-        name: this.name,
-        phone: this.phone,
+        name: this.payload.to_name,
+        phone: this.payload.to_phone,
         address: "",
         product: "",
         total_price: 0,

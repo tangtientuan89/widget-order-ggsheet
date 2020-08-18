@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <!-- OAuth -->
-    <div v-if="!is_oauth&&show_form_oauth">
+    <div v-if="!is_oauth&&show_form_oauth&&is_login">
       <div class="activate">
         <p>URL Google Form</p>
         <input
@@ -15,10 +15,19 @@
         </div>
       </div>
     </div>
+    <!-- warning -->
+    <div v-if="is_oauth&&show_form_oauth&&!is_login" class="container">
+        <div class="activate">
+          <div class="text-center">
+            <img src="./assets/error.png" alt />
+          </div>
+          <p class="mb-0">Xin vui lòng kích hoạt lại ứng dụng</p>
+        </div>
+    </div>
     <!-- form -->
-    <div v-if="is_oauth" style="height:100%">
+    <div v-if="is_oauth&&!show_form_oauth" style="height:100%">
       <p class="text-center pt-2 mb-4" style="font-size:1rem; font-weight:600">ORDER GOOGLE SHEET</p>
-      <Form :name="name" :phone="phone" />
+      <Form :payload="payload" />
     </div>
   </div>
 </template>
@@ -27,15 +36,11 @@
 import fetch from "@/services/resful.js";
 import Form from "@/components/Form";
 
-// const domain = "https://chatbox-app.botbanhang.vn/order-google-form";
-const APIBase = "https://chatbox-app.botbanhang.vn";
-// const APIBase = "https://app.devchatbox.tk";
-
+// domain  "https://chatbox-app.botbanhang.vn/order-google-form";
+// const APIBase = "https://chatbox-app.botbanhang.vn";
+const APIBase = "https://app.devchatbox.tk";
 const API =
   "https://chatbox-widget.botbanhang.vn/v1/widget-order-ggform/GGForm/get-html";
-let url_string = location.href;
-let url = new URL(url_string);
-let access_token = url.searchParams.get("access_token");
 
 export default {
   components: {
@@ -45,59 +50,80 @@ export default {
     return {
       is_oauth: false,
       show_form_oauth: false,
-      access_token: access_token,
-      secret_key: "98996b4986ad441bafcddafbc3968ed7", //product
-      // secret_key: "7bd46085a2874c7d9f1920f26f3dcec1",
-      content: "",
-      allNote: [],
-      payload: "",
-      name: "",
-      phone: "",
-
-      page: 1,
-      list: [],
-      infiniteId: +new Date(),
-
+      is_login: false,
+      path: "",
+      access_token: "",
+      // secret_key: "98996b4986ad441bafcddafbc3968ed7", //product
+      secret_key: "7bd46085a2874c7d9f1920f26f3dcec1",
+      payload: {
+        to_name: "",
+        to_phone: "",
+      },
       url_ggform: "",
       handle_api: true,
       entry: [],
     };
   },
   mounted() {
-    let data_localStorage = JSON.parse(
-      localStorage.getItem("widget_order_ggsheet")
-    );
-    console.log("widget_order_ggsheet", data_localStorage);
-    if(!data_localStorage.url_ggform)
-    return this.show_form_oauth =true
-    this.url_ggform = data_localStorage.url_ggform;
+    this.getParams();
+    this.partnerAuth();
   },
-  async created() {
-    try {
-      let body = {
-        access_token: this.access_token,
-        secret_key: this.secret_key,
-      };
-      let get_customer_info = await fetch.post(
-        `${APIBase}/v1/service/partner-authenticate`,
-        body
-      );
-      console.log("get_customer_info", get_customer_info);
-      if (get_customer_info.data.succes && get_customer_info.data.code == 200) {
-        this.is_oauth = true;
-        this.name = get_customer_info.data.data.public_profile.client_name;
-        if (get_customer_info.data.data.conversation_contact.client_phone)
-          this.phone =
-            get_customer_info.data.data.conversation_contact.client_phone;
-      }
-      console.log("name phone", this.name, this.phone);
-    } catch (e) {
-      console.log(e);
-      this.show_form_oauth = true;
-    }
-  },
+  created() {},
 
   methods: {
+    getParams() {
+      let url = new URL(window.location.href);
+      this.path = window.location.hash;
+      if (this.path.includes("#/auth?")) {
+        url = new URL(window.location.href.replace("#/auth?", ""));
+        this.is_login = url.searchParams.get("login");
+      }
+      this.access_token = url.searchParams.get("access_token");
+      console.log("access_token", this.access_token);
+    },
+    checkLocalStorage() {
+      let data_localStorage = JSON.parse(
+        localStorage.getItem("widget_order_ggsheet")
+      );
+      console.log("widget_order_ggsheet", data_localStorage);
+      if (!data_localStorage) {
+        this.is_login = false;
+        this.show_form_oauth = true;
+        return;
+      }
+      console.log("111111111111111111", this.show_form_oauth);
+      this.url_ggform = data_localStorage.url_ggform;
+    },
+    async partnerAuth() {
+      try {
+        let body = {
+          access_token: this.access_token,
+          secret_key: this.secret_key,
+        };
+        console.log("body", body);
+        let get_customer_info = await fetch.post(
+          `${APIBase}/v1/service/partner-authenticate`,
+          body
+        );
+        console.log("get_customer_info", get_customer_info);
+        if (
+          get_customer_info.data.succes &&
+          get_customer_info.data.code == 200
+        ) {
+          this.is_oauth = true;
+          this.payload.to_name =
+            get_customer_info.data.data.public_profile.client_name;
+          if (get_customer_info.data.data.conversation_contact.client_phone)
+            this.payload.to_phone =
+              get_customer_info.data.data.conversation_contact.client_phone;
+        }
+        this.checkLocalStorage();
+      } catch (e) {
+        console.log(e);
+        this.is_oauth = false;
+        this.show_form_oauth = true;
+      }
+    },
     async runOAuth() {
       try {
         let body = {
@@ -115,10 +141,10 @@ export default {
             this.is_oauth = true;
             this.show_form_oauth = false;
             window.close();
-          }, 500);
+          }, 1000);
         }
       } catch (e) {
-        this.swalToast("OAuth error", "error");
+        this.swalToast("Kích hoạt thất bại", "error");
         console.log(e);
       }
     },
@@ -131,7 +157,6 @@ export default {
         this.handle_api = false;
         Swal.showLoading();
         let res = await fetch.post(API, { url_ggform: url_ggform }); //API get HTML formGGSheet
-        // console.log("res data form", res.data.data.body);
         Swal.hideLoading();
         let html = res.data.data.body;
         let entry = this.detectHTML(html); // detect entry from response
@@ -157,15 +182,15 @@ export default {
     },
     detectHTML(html) {
       let arr = html.split("data-params=");
-      console.log("split arr", arr);
+      // console.log("split arr", arr);
       arr.shift();
-      console.log("split arr", arr);
+      // console.log("split arr", arr);
       let entry = [];
       for (let i = 0; i < arr.length; i++) {
         let e = arr[i].split(",[[")[1].split(",")[0];
         entry.push(e);
       }
-      console.log("text arr", entry);
+      // console.log("text arr", entry);
       this.entry = entry;
       return entry;
     },
@@ -182,7 +207,7 @@ export default {
         if (arr_string[i].length > id_ggsheet.length)
           id_ggsheet = arr_string[i];
       }
-      console.log("id_ggsheet", id_ggsheet);
+      // console.log("id_ggsheet", id_ggsheet);
       return `https://docs.google.com/forms/d/e/${id_ggsheet}/formResponse`;
     },
     swalToast(title, icon) {
@@ -213,7 +238,6 @@ $colorBG: #f6f6f6;
 //   width: 0px;
 //   background-color: #0199ff;
 // }
-
 .activate {
   background: $colorBG;
   border: 2px solid rgba(0, 0, 0, 0.125);
@@ -231,7 +255,6 @@ $colorBG: #f6f6f6;
     font-weight: 700;
   }
 }
-
 .auth {
   padding: 10px 35px;
   /* transform: translateX(-50%); */
