@@ -12,7 +12,7 @@
         <p class>Sản phẩm: {{info.product}}</p>
         <p v-if="info.note">Ghi chú: {{info.note}}</p>
         <p class="font-weight-bold" style="font-size:16">Giá trị đơn hàng: {{info.total_price}}</p>
-        <button @click="createOrder()" class="btn btn-primary mt-3 mb-4 w-100 font-weight-bold">
+        <button @click="createOrder()" class="btn-pill mt-3 mb-4 w-100 font-weight-bold">
           Xác nhận
           đơn
         </button>

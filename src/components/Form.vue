@@ -1,58 +1,88 @@
 <template>
-  <div>
-    <div>
-      <!-- <p class="mb-0 mt-3">Thông tin khách hàng</p> -->
+  <div class="order-ggsheet">
+    <p class="ggsheet__title">ORDER GOOGLE SHEET</p>
+    <div class="customer__info">
+      <hr />
+      <p class="all__text--decoration mb-0">Khách hàng</p>
       <div class="form-row">
         <div class="col">
-          <input class="form-control" placeholder="Họ Tên" v-model="info.name" />
+          <input class="form-control-sm" placeholder="Họ Tên" v-model="info.name" title="Họ Tên" />
         </div>
         <div class="col">
-          <input class="form-control" placeholder="Số ĐT" v-model="info.phone" />
+          <input
+            class="form-control-sm"
+            type="number"
+            placeholder="Số ĐT"
+            v-model="info.phone"
+            title="Số điện thoại"
+          />
         </div>
       </div>
-      <input class="form-control" placeholder="Địa chỉ chi tiết" v-model="address" />
+      <input
+        class="form-control-sm"
+        placeholder="Địa chỉ chi tiết"
+        v-model="street"
+        title="Địa chỉ chi tiết"
+      />
       <div class="form-row">
         <div class="col">
-          <select v-model="country" class="form-control">
+          <select v-model="country" class="form-control-sm">
             <option selected value>Việt Nam</option>
             <!-- <option >Quốc Gia</option> -->
           </select>
         </div>
         <div class="col">
           <Autocomplete
-            :items="list_city"
+            :list_data_input="list_city"
             :placeholder="'Tỉnh/Tp'"
-            @input_data="city=$event"
+            @data_output="city=$event"
             :getData="getDistrict"
+            :prop_name="'name'"
+            :clearInput="resetChangeCity"
           />
         </div>
       </div>
       <div class="form-row">
         <div class="col">
           <Autocomplete
-            ref="district"
-            :items="list_district"
+            :list_data_input="list_district"
             :placeholder="'Quận/Huyện'"
-            @input_data="district=$event"
+            @data_output="district=$event"
             :getData="getWard"
+            :prop_name="'name'"
+            :clearInput="resetChangeDistrict"
+            :watch_data="district"
           />
         </div>
         <div class="col">
           <Autocomplete
-            ref="ward"
-            :items="list_ward"
+            :list_data_input="list_ward"
             :placeholder="'Phường/Xã'"
-            @input_data="ward=$event"
-            :getData="1"
+            @data_output="ward=$event"
+            :getData="false"
+            :prop_name="'name'"
+            :clearInput="false"
+            :watch_data="ward"
           />
         </div>
       </div>
-      <!-- <p class="mb-0 mt-2">Thông tin sản phẩm</p> -->
-      <textarea class="form-control" placeholder="Sản Phẩm" v-model="info.product" title="Sản Phẩm"></textarea>
-      <p class="mb-0 mt-2">Giá Trị Đơn Hàng</p>
+    </div>
+    <div class="customer__product">
+      <hr />
+      <p class="all__text--decoration mb-0">Sản phẩm</p>
+      <textarea
+        class="form-control-sm"
+        placeholder="Sản Phẩm"
+        v-model="info.product"
+        title="Sản Phẩm"
+      ></textarea>
+    </div>
+    <div class="customer__price">
+      <hr />
+      <p class="all__text--decoration mb-0">Giá Trị Đơn Hàng</p>
       <input
         id="input"
-        class="form-control text-right"
+        class="form-control-sm text-right"
         type="text"
         placeholder="Giá Trị Đơn Hàng"
         title="Giá Trị Đơn Hàng"
@@ -60,29 +90,31 @@
         data-type="currency"
         @keyup="checkKeyBoard($event,$event.target.value)"
       />
-      <div class="option my-3 d-flex justify-content-end">
-        <div class="d-flex align-items-center" @click="handleShowNote">
-          <img class="mr-2" src="../assets/note.png" alt="add note" />
-          <p class="text-primary m-0">Thêm ghi chú</p>
-        </div>
-      </div>
-      <div v-if="is_show_note">
-        <textarea
-          class="input input-large note form-control"
-          placeholder="Ghi Chú"
-          v-model="info.note"
-        ></textarea>
-      </div>
-      <div class="text-right mb-2">
-        <button class="btn btn-primary w-100 my-2" @click="handleShowOrderInfo()">Tạo đơn hàng</button>
-      </div>
-      <OrderInfo
-        :is_show_order_info="is_show_order_info"
-        :handleCloseOrderInfo="handleCloseOrderInfo"
-        :createOrder="createOrder"
-        :info="info"
-      />
     </div>
+
+    <div class="customer__note mb-3 d-flex justify-content-end">
+      <div class="d-flex align-items-center" @click="handleShowNote">
+        <img class="mr-2" src="../assets/note.png" alt="add note" />
+        <p class="text-primary m-0">Thêm ghi chú</p>
+      </div>
+    </div>
+    <div v-if="is_show_note">
+      <textarea
+        class="input input-large note form-control-sm mb-2"
+        placeholder="Ghi Chú"
+        title="Ghi chú"
+        v-model="info.note"
+      ></textarea>
+    </div>
+    <div class="text-right mb-2">
+      <button class="btn-pill w-100 my-2" @click="handleShowOrderInfo()">Tạo đơn hàng</button>
+    </div>
+    <OrderInfo
+      :is_show_order_info="is_show_order_info"
+      :handleCloseOrderInfo="handleCloseOrderInfo"
+      :createOrder="createOrder"
+      :info="info"
+    />
   </div>
 </template>
 
@@ -118,7 +150,8 @@ export default {
       district: "",
       list_ward: "",
       ward: "",
-      address: "",
+      street: "",
+      handle_api: false,
       is_show_note: false,
       is_show_order_info: false,
     };
@@ -139,6 +172,8 @@ export default {
 
   methods: {
     async createOrder() {
+      if (this.handle_api) return;
+      this.handle_api = true;
       console.log(" this.entry", this.entry);
       let body = {};
       body[`entry.${this.entry[0]}`] = this.info.name;
@@ -156,9 +191,11 @@ export default {
         data: body,
         success: (r) => {
           console.log("r", r);
+          this.handle_api = false;
         },
         error: (e) => {
           console.log(e);
+          this.handle_api = false;
           this.handleCloseOrderInfo();
           this.swalToast("Tạo đơn thành công", "success");
         },
@@ -169,7 +206,9 @@ export default {
         let get_list_city = await fetch.get(
           "https://ext.botup.io/v1/delivery/subvn/thongtin/tinhtp"
         );
-        this.list_city = get_list_city.data.data;
+        if (get_list_city && get_list_city.data && get_list_city.data.data) {
+          this.list_city = get_list_city.data.data;
+        }
         console.log(" this.list_city", this.list_city);
       } catch (e) {
         console.log(e);
@@ -177,20 +216,19 @@ export default {
     },
     async getDistrict() {
       try {
-        console.log("handle getDistrict", this.city);
-
-        let city = "";
-        for (let index = 0; index < this.list_city.length; index++) {
-          if (this.city == this.list_city[index].name)
-            city = this.list_city[index];
-        }
-
         let path = "https://ext.botup.io/v1/delivery/subvn/thongtin/quanhuyen";
         let params = {
-          matinh: city.code,
+          matinh: this.city.code,
         };
+
         let get_list_district = await fetch.get(path, params);
-        this.list_district = get_list_district.data.data;
+        if (
+          get_list_district &&
+          get_list_district.data &&
+          get_list_district.data.data
+        ) {
+          this.list_district = get_list_district.data.data;
+        }
         console.log("  this.list_district", this.list_district);
       } catch (error) {
         console.log("error", error);
@@ -198,41 +236,41 @@ export default {
     },
     async getWard() {
       try {
-        console.log("handle getWard", this.district);
-
-        let district = "";
-        for (let index = 0; index < this.list_district.length; index++) {
-          if (this.district == this.list_district[index].name)
-            district = this.list_district[index];
-        }
-
         let path =
           "https://ext.botup.io/v1/delivery/subvn/thongtin/xaphuonghuyen";
         let params = {
-          mahuyen: district.code,
+          mahuyen: this.district.code,
         };
+
         let get_list_ward = await fetch.get(path, params);
-        this.list_ward = get_list_ward.data.data;
+
+        if (get_list_ward && get_list_ward.data && get_list_ward.data.data) {
+          this.list_ward = get_list_ward.data.data;
+        }
         console.log(" this.list_ward", this.list_ward);
       } catch (error) {
         console.log("error", error);
       }
     },
-    // handleClearInputDistrict() {
-    //   console.log("run clear distric", this.$refs.district);
-    //   this.$refs.district.value = "";
-    //   this.district = "";
-    //   console.log("run clear distric", this.district);
-    // },
-    // handleClearInputWard() {
-    //   this.ward = "";
-    // },
+    resetAddress() {
+      this.address = "";
+      this.street = "";
+      this.district = "";
+      this.ward = "";
+    },
+    resetChangeCity() {
+      this.district = "";
+      this.ward = "";
+    },
+    resetChangeDistrict() {
+      this.ward = "";
+    },
     handleShowNote() {
       this.is_show_note = !this.is_show_note;
     },
     handleShowOrderInfo() {
       if (!this.validateOrder()) return;
-      this.info.address = `${this.address}, ${this.ward}, ${this.district}, ${this.city}`;
+      this.info.address = `${this.street}, ${this.ward.name}, ${this.district.name}, ${this.city.name}`;
       this.is_show_order_info = true;
     },
     handleCloseOrderInfo() {
@@ -245,7 +283,16 @@ export default {
       if (!this.info.phone) {
         return this.swalToast("Bạn chưa nhập Số ĐT", "warning");
       }
-      if (!this.address || !this.city || !this.district || !this.ward) {
+      let phone = this.info.phone.toString();
+      if (phone.length != 10 || phone[0] != 0) {
+        return this.swalToast("Số ĐT không đúng", "warning");
+      }
+      if (
+        !this.street ||
+        !this.city.name ||
+        !this.district.name ||
+        !this.ward.name
+      ) {
         return this.swalToast("Bạn chưa nhập đầy đủ Địa Chỉ", "warning");
       }
       if (!this.info.product) {
@@ -334,36 +381,43 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-$fontSize: 13px;
-* {
-  font-size: $fontSize;
-  line-height: 16px;
+.order-ggsheet {
+  padding: 10px;
+  line-height: 1.5rem;
   box-sizing: border-box;
   // ::-webkit-scrollbar {
   //   width: 0px;
   //   background-color: rgb(225, 225, 225);
   // }
+  .ggsheet__title {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: bold;
+    padding-bottom: 1rem;
+  }
+  .customer__info,
+  .customer__product,
+  .customer__price {
+    position: relative;
+    padding-bottom: 10px;
+  }
+  .customer__note {
+    cursor: pointer;
+    img {
+      width: 20px;
+      height: 20px;
+    }
+  }
 }
+
 textarea {
-  margin-top: 10px;
+  height: 40px;
 }
 input,
 select {
   margin-bottom: 10px;
 }
 button {
-  width: 4rem;
-  padding-left: 0;
-  padding-right: 0;
-}
-.option {
-  cursor: pointer;
-  img {
-    width: 20px;
-    height: 20px;
-  }
-}
-datalist {
-  display: none;
+  font-weight: 600;
 }
 </style>
